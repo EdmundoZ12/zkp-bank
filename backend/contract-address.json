@@ -1,5 +1,7 @@
 {
   "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
   "network": "localhost",
-  "deployed_at": "2025-07-06T06:34:46.470Z"
+  "deployed_at": "2025-07-07T07:44:32.535Z",
+  "bytecode_verified": true,
+  "bytecode_length": 21462
 }
