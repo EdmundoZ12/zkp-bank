@@ -1,0 +1,49 @@
+{
+  "inputs": [
+    {
+      "name": "cedula",
+      "public": false,
+      "type": "u32"
+    },
+    {
+      "name": "fecha_nacimiento",
+      "public": false,
+      "type": "u32"
+    },
+    {
+      "name": "codigo_secreto",
+      "public": false,
+      "type": "u32"
+    },
+    {
+      "name": "expected_cedula_hash",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 8,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "expected_fecha_hash",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 8,
+        "type": "u32"
+      }
+    },
+    {
+      "name": "expected_codigo_hash",
+      "public": true,
+      "type": "array",
+      "components": {
+        "size": 8,
+        "type": "u32"
+      }
+    }
+  ],
+  "output": {
+    "type": "field"
+  }
+}

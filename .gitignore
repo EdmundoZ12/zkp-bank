@@ -1,0 +1,7 @@
+backend/node_modules
+backend/blockchain/node_modules# ZK Circuit artifacts
+circuits/*/out
+circuits/*/out.r1cs
+circuits/*/proving.key
+circuits/*/witness
+circuits/*/out.wtns

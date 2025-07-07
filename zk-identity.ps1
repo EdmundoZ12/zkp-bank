@@ -1,0 +1,1 @@
+docker run -it --rm -v "${PWD}:/home/zokrates/code" -w /home/zokrates/code zokrates/zokrates:latest zokrates $args
