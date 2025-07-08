@@ -17,20 +17,34 @@ class BlockchainService {
         this.contract = null;
     }
 
-    // Cargar dirección del contrato desplegado
+    // Cargar direcciones de ambos contratos desplegados
     loadContractAddress() {
         try {
-            // Ruta desde services hasta backend/contract-address.json
+            // Intentar cargar el archivo dual primero
+            const dualContractPath = path.join(__dirname, '../../blockchain/contract-addresses.json');
+            
+            if (fs.existsSync(dualContractPath)) {
+                console.log('🔍 Cargando contratos duales desde:', dualContractPath);
+                const contractData = JSON.parse(fs.readFileSync(dualContractPath, 'utf8'));
+                this.zokratesAddress = contractData.zokrates.address;
+                this.snarkjsAddress = contractData.snarkjs.address;
+                console.log(`📄 Contrato ZoKrates: ${this.zokratesAddress}`);
+                console.log(`📄 Contrato snarkjs: ${this.snarkjsAddress}`);
+                return;
+            }
+            
+            // Fallback al archivo anterior
             const contractPath = path.join(__dirname, '../../contract-address.json');
-            console.log('🔍 Buscando contrato en:', contractPath);
+            console.log('🔍 Buscando contrato legacy en:', contractPath);
 
             if (!fs.existsSync(contractPath)) {
-                throw new Error(`Archivo no encontrado en: ${contractPath}`);
+                throw new Error(`Ningún archivo de contrato encontrado`);
             }
 
             const contractData = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
             this.contractAddress = contractData.address;
-            console.log(`📄 Contrato ZKP cargado: ${this.contractAddress}`);
+            this.zokratesAddress = contractData.address; // Legacy como ZoKrates
+            console.log(`📄 Contrato legacy cargado: ${this.contractAddress}`);
         } catch (error) {
             console.error('❌ Error cargando contrato:', error.message);
             this.contractAddress = null;
@@ -92,8 +106,27 @@ class BlockchainService {
             console.log('🔧 Formateando prueba para contrato...');
             console.log('📥 Prueba recibida:', JSON.stringify(proof, null, 2));
 
-            // ZoKrates genera formato: proof.proof.{a,b,c}
-            const zkProof = proof.proof || proof;
+            // Detectar formato de prueba
+            let zkProof;
+            if (proof.proof) {
+                // Formato ZoKrates: proof.proof.{a,b,c}
+                zkProof = proof.proof;
+            } else if (proof.pi_a) {
+                // Formato snarkjs: proof.{pi_a, pi_b, pi_c}
+                zkProof = {
+                    a: proof.pi_a,
+                    b: proof.pi_b,
+                    c: proof.pi_c
+                };
+            } else {
+                // Formato directo: proof.{a,b,c}
+                zkProof = proof;
+            }
+
+            // Verificar que tenemos los datos necesarios
+            if (!zkProof.a || !zkProof.b || !zkProof.c) {
+                throw new Error('Prueba inválida: faltan campos a, b, c');
+            }
 
             // El contrato espera estructura específica
             const formattedProof = {
@@ -132,6 +165,53 @@ class BlockchainService {
         } catch (error) {
             console.error('❌ Error formateando señales:', error.message);
             throw new Error(`Error formateando señales: ${error.message}`);
+        }
+    }
+
+    // Detectar tipo de prueba (snarkjs vs zokrates)
+    detectProofType(proof) {
+        if (proof && proof.pi_a && proof.pi_b && proof.pi_c && proof.protocol === 'groth16') {
+            return 'snarkjs';
+        } else if (proof && proof.proof && proof.inputs) {
+            return 'zokrates';
+        }
+        return 'unknown';
+    }
+
+    // Obtener dirección de contrato según el tipo
+    getContractAddress(proofType) {
+        if (proofType === 'snarkjs' && this.snarkjsAddress) {
+            return this.snarkjsAddress;
+        } else if (proofType === 'zokrates' && this.zokratesAddress) {
+            return this.zokratesAddress;
+        } else if (this.contractAddress) {
+            return this.contractAddress; // Fallback legacy
+        }
+        return null;
+    }
+
+    // Cargar ABI específico según el tipo
+    async loadSpecificABI(proofType) {
+        try {
+            let artifactPath;
+            if (proofType === 'snarkjs') {
+                artifactPath = path.join(__dirname, '../../blockchain/artifacts/contracts/verifier_snarkjs.sol/SnarkjsVerifier.json');
+            } else {
+                artifactPath = path.join(__dirname, '../../blockchain/artifacts/contracts/verifier.sol/Verifier.json');
+            }
+
+            console.log(`🔍 Buscando ABI ${proofType} en:`, artifactPath);
+
+            if (!fs.existsSync(artifactPath)) {
+                throw new Error(`ABI ${proofType} no encontrado en: ${artifactPath}`);
+            }
+
+            const artifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+            console.log(`✅ ABI ${proofType} cargado correctamente`);
+            return artifact.abi;
+        } catch (error) {
+            console.error(`❌ Error cargando ABI ${proofType}:`, error.message);
+            return null;
         }
     }
 
@@ -229,9 +309,8 @@ class BlockchainService {
             console.log('- Proof.proof keys:', proof.proof ? Object.keys(proof.proof) : 'N/A');
             console.log('- PublicSignals length:', publicSignals.length);
 
-            // Por ahora retorna true para continuar desarrollo
-            console.log('⚠️ Usando verificación de respaldo');
-            return true;
+            // No usar verificación de respaldo - ser estricto
+            throw error;
         }
     }
 
