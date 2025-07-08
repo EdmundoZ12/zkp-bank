@@ -1,193 +1,431 @@
-import React, { useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { api } from '../../services/api';
+import React, { useState } from "react";
+import { toast } from "react-hot-toast";
+import { unifiedAPI } from "../../services/api";
 
 const ZKPLoginSimple = ({ onLoginSuccess, onSwitchToRegister }) => {
   const [formData, setFormData] = useState({
-    cedula: '',
-    codigo_secreto: '',
-    zkp_method: 'zokrates'
+    cedula: "12345678",
+    codigo_secreto: "9876",
+    zkp_method: "snarkjs",
   });
-  
+
   const [loading, setLoading] = useState(false);
 
   const zkpMethods = [
-    { id: 'zokrates', name: 'ZoKrates', description: 'zk-SNARKs con Docker' },
-    { id: 'snarkjs', name: 'snarkjs', description: 'zk-SNARKs nativo' },
-    { id: 'starks', name: 'STARKs', description: 'zk-STARKs simulado' }
+    { id: "zokrates", name: "ZoKrates", description: "zk-SNARKs con Docker" },
+    { id: "snarkjs", name: "snarkjs", description: "zk-SNARKs nativo" },
+    { id: "starks", name: "STARKs", description: "zk-STARKs simulado" },
   ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.cedula || !formData.codigo_secreto) {
-      toast.error('Cédula y código de seguridad son requeridos');
+      toast.error("Cédula y código de seguridad son requeridos");
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await api.loginSimple(formData);
-      
+      console.log("🔐 Iniciando autenticación ZKP...");
+
+      const response = await unifiedAPI.loginSimple(formData);
+
       if (response.success) {
         toast.success(`¡Login exitoso con ${response.metodo}!`);
-        
-        // Guardar token y datos del usuario
-        localStorage.setItem('zkp_token', response.token);
-        localStorage.setItem('zkp_user', JSON.stringify(response.usuario));
-        
+
+        localStorage.setItem("zkp_token", response.token);
+        localStorage.setItem("zkp_user", JSON.stringify(response.usuario));
+
         onLoginSuccess(response);
       } else {
-        toast.error(response.message || 'Error en el login');
+        toast.error(response.message || "Error en el login");
       }
     } catch (error) {
-      console.error('Error en login:', error);
-      toast.error(error.message || 'Error al autenticar');
+      console.error("❌ Error en login:", error);
+      toast.error(error.message || "Error al autenticar");
     } finally {
       setLoading(false);
     }
   };
 
+  const styles = {
+    container: {
+      minHeight: "100vh",
+      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "20px",
+      fontFamily:
+        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    },
+    card: {
+      backgroundColor: "rgba(255, 255, 255, 0.95)",
+      borderRadius: "20px",
+      boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+      backdropFilter: "blur(20px)",
+      border: "1px solid rgba(255, 255, 255, 0.2)",
+      maxWidth: "420px",
+      width: "100%",
+      overflow: "hidden",
+    },
+    header: {
+      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      color: "white",
+      padding: "30px 20px",
+      textAlign: "center",
+    },
+    title: {
+      fontSize: "24px",
+      fontWeight: "700",
+      margin: "0 0 8px 0",
+      letterSpacing: "-0.5px",
+    },
+    subtitle: {
+      fontSize: "14px",
+      margin: "0",
+      opacity: "0.9",
+      fontWeight: "400",
+    },
+    form: {
+      padding: "30px 20px",
+    },
+    inputGroup: {
+      marginBottom: "25px",
+    },
+    label: {
+      display: "block",
+      fontSize: "14px",
+      fontWeight: "600",
+      color: "#374151",
+      marginBottom: "8px",
+    },
+    input: {
+      width: "100%",
+      padding: "14px 16px",
+      border: "2px solid #e5e7eb",
+      borderRadius: "12px",
+      fontSize: "16px",
+      backgroundColor: "white",
+      boxSizing: "border-box",
+      transition: "all 0.3s ease",
+      outline: "none",
+    },
+    inputFocus: {
+      borderColor: "#667eea",
+      boxShadow: "0 0 0 3px rgba(102, 126, 234, 0.1)",
+    },
+    protocolSection: {
+      marginBottom: "25px",
+    },
+    protocolGrid: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr 1fr",
+      gap: "8px",
+      marginTop: "12px",
+    },
+    protocolOption: {
+      padding: "16px 12px",
+      textAlign: "center",
+      cursor: "pointer",
+      borderRadius: "12px",
+      border: "2px solid #e5e7eb",
+      backgroundColor: "white",
+      transition: "all 0.3s ease",
+      userSelect: "none",
+    },
+    protocolOptionSelected: {
+      borderColor: "#667eea",
+      backgroundColor: "#f0f4ff",
+      color: "#667eea",
+    },
+    protocolName: {
+      fontWeight: "600",
+      fontSize: "14px",
+      marginBottom: "4px",
+    },
+    protocolDesc: {
+      fontSize: "11px",
+      color: "#6b7280",
+      lineHeight: "1.3",
+    },
+    warningSection: {
+      backgroundColor: "#fef3c7",
+      border: "2px solid #fbbf24",
+      borderRadius: "12px",
+      padding: "16px",
+      marginBottom: "30px",
+      display: "flex",
+      alignItems: "flex-start",
+    },
+    warningIcon: {
+      fontSize: "20px",
+      marginRight: "12px",
+      marginTop: "2px",
+    },
+    warningContent: {
+      flex: "1",
+    },
+    warningTitle: {
+      fontWeight: "600",
+      fontSize: "14px",
+      color: "#92400e",
+      marginBottom: "4px",
+    },
+    warningText: {
+      fontSize: "13px",
+      color: "#92400e",
+      lineHeight: "1.4",
+    },
+    shieldSection: {
+      textAlign: "center",
+      marginBottom: "30px",
+    },
+    shield: {
+      width: "100px",
+      height: "100px",
+      color: "#374151",
+      filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))",
+    },
+    button: {
+      width: "100%",
+      padding: "16px",
+      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      color: "white",
+      border: "none",
+      borderRadius: "12px",
+      fontSize: "16px",
+      fontWeight: "600",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+      boxShadow: "0 4px 12px rgba(102, 126, 234, 0.4)",
+      marginBottom: "20px",
+    },
+    buttonHover: {
+      transform: "translateY(-2px)",
+      boxShadow: "0 8px 20px rgba(102, 126, 234, 0.6)",
+    },
+    buttonDisabled: {
+      opacity: "0.6",
+      cursor: "not-allowed",
+      transform: "none",
+      boxShadow: "0 4px 12px rgba(102, 126, 234, 0.2)",
+    },
+    footer: {
+      textAlign: "center",
+      paddingBottom: "10px",
+    },
+    link: {
+      color: "#667eea",
+      textDecoration: "none",
+      fontSize: "14px",
+      fontWeight: "500",
+      cursor: "pointer",
+      transition: "color 0.3s ease",
+    },
+    linkHover: {
+      color: "#5a67d8",
+    },
+    demo: {
+      fontSize: "12px",
+      color: "#6b7280",
+      backgroundColor: "#f9fafb",
+      padding: "12px",
+      borderRadius: "8px",
+      marginTop: "15px",
+      border: "1px solid #e5e7eb",
+    },
+    spinner: {
+      display: "inline-block",
+      width: "20px",
+      height: "20px",
+      border: "2px solid rgba(255, 255, 255, 0.3)",
+      borderRadius: "50%",
+      borderTopColor: "white",
+      animation: "spin 1s linear infinite",
+      marginRight: "10px",
+    },
+  };
+
+  // Agregar CSS para animación
+  React.useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+    <div style={styles.container}>
+      <div style={styles.card}>
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900">Acceso Corporativo</h2>
-          <p className="text-gray-600 mt-2">Autenticación mediante Zero Knowledge Proof</p>
+        <div style={styles.header}>
+          <h1 style={styles.title}>Acceso Corporativo</h1>
+          <p style={styles.subtitle}>
+            Autenticación mediante Zero Knowledge Proof
+          </p>
         </div>
 
         {/* Formulario */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} style={styles.form} autoComplete="off">
+          {/* Campos ocultos */}
+          <input
+            type="text"
+            name="fake-username"
+            autoComplete="off"
+            style={{ display: "none" }}
+            tabIndex="-1"
+          />
+          <input
+            type="password"
+            name="fake-password"
+            autoComplete="off"
+            style={{ display: "none" }}
+            tabIndex="-1"
+          />
+
           {/* Cédula */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Número de Identificación
-            </label>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Número de Identificación</label>
             <input
               type="text"
               name="cedula"
               value={formData.cedula}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              placeholder="12345678"
+              style={styles.input}
+              onFocus={(e) => Object.assign(e.target.style, styles.inputFocus)}
+              onBlur={(e) => Object.assign(e.target.style, styles.input)}
+              autoComplete="off"
               required
             />
           </div>
 
           {/* Código Secreto */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Código de Seguridad
-            </label>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Código de Seguridad</label>
             <input
               type="password"
               name="codigo_secreto"
               value={formData.codigo_secreto}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              placeholder="••••"
+              style={styles.input}
+              onFocus={(e) => Object.assign(e.target.style, styles.inputFocus)}
+              onBlur={(e) => Object.assign(e.target.style, styles.input)}
+              autoComplete="new-password"
               required
             />
           </div>
 
           {/* Protocolo de Verificación */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Protocolo de Verificación
-            </label>
-            <div className="grid grid-cols-3 gap-2">
+          <div style={styles.protocolSection}>
+            <label style={styles.label}>Protocolo de Verificación</label>
+            <div style={styles.protocolGrid}>
               {zkpMethods.map((method) => (
-                <div key={method.id} className="relative">
-                  <input
-                    type="radio"
-                    id={method.id}
-                    name="zkp_method"
-                    value={method.id}
-                    checked={formData.zkp_method === method.id}
-                    onChange={handleChange}
-                    className="sr-only"
-                  />
-                  <label
-                    htmlFor={method.id}
-                    className={`block w-full p-3 text-center rounded-lg border-2 cursor-pointer transition-all ${
-                      formData.zkp_method === method.id
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="font-medium text-sm">{method.name}</div>
-                    <div className="text-xs text-gray-500 mt-1">{method.description}</div>
-                  </label>
+                <div
+                  key={method.id}
+                  style={{
+                    ...styles.protocolOption,
+                    ...(formData.zkp_method === method.id
+                      ? styles.protocolOptionSelected
+                      : {}),
+                  }}
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, zkp_method: method.id }))
+                  }
+                  onMouseEnter={(e) => {
+                    if (formData.zkp_method !== method.id) {
+                      e.target.style.borderColor = "#d1d5db";
+                      e.target.style.backgroundColor = "#f9fafb";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (formData.zkp_method !== method.id) {
+                      e.target.style.borderColor = "#e5e7eb";
+                      e.target.style.backgroundColor = "white";
+                    }
+                  }}
+                >
+                  <div style={styles.protocolName}>{method.name}</div>
+                  <div style={styles.protocolDesc}>{method.description}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Información de Zero Knowledge */}
-          <div className="bg-green-50 p-4 rounded-lg">
-            <div className="flex items-start">
-              <svg className="w-5 h-5 text-green-600 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <div className="text-sm text-green-800">
-                <p className="font-medium">🔒 Zero Knowledge Protocol</p>
-                <p>Tu fecha de nacimiento se mantiene privada. Solo envías cédula y código.</p>
+          {/* Warning */}
+          <div style={styles.warningSection}>
+            <div style={styles.warningIcon}>🔒</div>
+            <div style={styles.warningContent}>
+              <div style={styles.warningTitle}>Zero Knowledge Protocol</div>
+              <div style={styles.warningText}>
+                Tu fecha de nacimiento se mantiene privada. Solo envías cédula y
+                código.
               </div>
             </div>
           </div>
 
-          {/* Botón de Login */}
+          {/* Shield */}
+          <div style={styles.shieldSection}>
+            <svg style={styles.shield} viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
+              <path
+                d="M10 17l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"
+                fill="white"
+              />
+            </svg>
+          </div>
+
+          {/* Button */}
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 ${
-              loading
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl'
-            }`}
+            style={{
+              ...styles.button,
+              ...(loading ? styles.buttonDisabled : {}),
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                Object.assign(e.target.style, styles.buttonHover);
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading) {
+                e.target.style.transform = "translateY(0)";
+                e.target.style.boxShadow = styles.button.boxShadow;
+              }
+            }}
           >
-            {loading ? (
-              <div className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Autenticando...
-              </div>
-            ) : (
-              '🔐 Autenticar con Zero Knowledge'
-            )}
+            {loading && <div style={styles.spinner}></div>}
+            {loading ? "Autenticando..." : "🔐 Autenticar con Zero Knowledge"}
           </button>
 
-          {/* Link a Registro */}
-          <div className="text-center pt-4">
-            <button
-              type="button"
+          {/* Footer */}
+          <div style={styles.footer}>
+            <a
+              style={styles.link}
               onClick={onSwitchToRegister}
-              className="text-blue-600 hover:text-blue-800 font-medium"
+              onMouseEnter={(e) =>
+                (e.target.style.color = styles.linkHover.color)
+              }
+              onMouseLeave={(e) => (e.target.style.color = styles.link.color)}
             >
               ¿No tienes cuenta? Regístrate aquí
-            </button>
-          </div>
-
-          {/* Demo Info */}
-          <div className="text-center pt-2">
-            <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+            </a>
+            <div style={styles.demo}>
               <strong>Demo:</strong> Cédula: 12345678, Código: 9876
             </div>
           </div>

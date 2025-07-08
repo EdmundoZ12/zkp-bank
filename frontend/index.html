@@ -1,10 +1,68 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <title>ZKP Banking - Autenticación Zero Knowledge</title>
+
+    <!-- Prevenir detección automática de formularios -->
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="format-detection" content="email=no" />
+    <meta name="format-detection" content="address=no" />
+
+    <!-- Suprimir errores de autofill y scripts del navegador -->
+    <script>
+      // Suprimir errores conocidos del navegador
+      const originalConsoleError = console.error;
+      const originalConsoleWarn = console.warn;
+
+      console.error = function (...args) {
+        const message = args.join(" ");
+
+        // Filtrar errores conocidos del navegador
+        if (
+          message.includes("AutofillOverlayContentService") ||
+          message.includes("fido2-page-script") ||
+          message.includes("bootstrap-autofill") ||
+          message.includes("Duplicate script ID") ||
+          message.includes("reading 'username'")
+        ) {
+          return; // No mostrar estos errores
+        }
+
+        // Mostrar otros errores normalmente
+        originalConsoleError.apply(console, args);
+      };
+
+      console.warn = function (...args) {
+        const message = args.join(" ");
+
+        // Filtrar advertencias del autofill
+        if (
+          message.includes("AutofillOverlay") ||
+          message.includes("fido2") ||
+          message.includes("autofill")
+        ) {
+          return;
+        }
+
+        originalConsoleWarn.apply(console, args);
+      };
+
+      // Prevenir errores de extensiones del navegador
+      window.addEventListener("error", function (e) {
+        if (
+          e.filename &&
+          (e.filename.includes("bootstrap-autofill") ||
+            e.filename.includes("fido2") ||
+            e.filename.includes("extension"))
+        ) {
+          e.preventDefault();
+          return false;
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>

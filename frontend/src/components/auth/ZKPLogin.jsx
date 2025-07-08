@@ -18,7 +18,7 @@ const ZKPLogin = ({ onLoginSuccess }) => {
   const zkpMethods = [
     {
       id: 'zokrates',
-      name: 'ZoKrates',
+      name: 'ZoKratesss',
       description: 'Pruebas ZK-SNARKs con ZoKrates',
       badge: 'Seguro',
       badgeClass: 'zkp-badge zkp-badge-secure',
