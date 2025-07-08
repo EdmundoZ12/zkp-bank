@@ -106,6 +106,81 @@ class AuthController {
     }
   }
 
+  // Registro de nuevo usuario
+  async register(req, res) {
+    try {
+      const { 
+        username, 
+        nombre_completo,
+        cedula, 
+        fecha_nacimiento, 
+        codigo_secreto 
+      } = req.body;
+
+      console.log(`🔧 Registrando nuevo usuario: ${username}`);
+
+      // Validar datos requeridos
+      if (!username || !nombre_completo || !cedula || !fecha_nacimiento || !codigo_secreto) {
+        return res.status(400).json({
+          error: "Datos requeridos",
+          required: ["username", "nombre_completo", "cedula", "fecha_nacimiento", "codigo_secreto"]
+        });
+      }
+
+      // Verificar que el username no exista
+      const usuarioExistente = await Usuario.findByUsername(username);
+      if (usuarioExistente) {
+        return res.status(409).json({
+          error: "El nombre de usuario ya existe",
+          message: "Por favor, elija un nombre de usuario diferente"
+        });
+      }
+
+      // Generar hashes ZKP para almacenamiento
+      const hashes = this.generarHashesZKP(cedula, fecha_nacimiento, codigo_secreto);
+
+      // Crear usuario en base de datos
+      const nuevoUsuario = await Usuario.create({
+        username: username,
+        nombre_completo: nombre_completo,
+        cedula_hash: hashes.cedula_hash,
+        fecha_hash: hashes.fecha_hash,
+        codigo_hash: hashes.codigo_hash,
+        saldo: 1000.00 // Saldo inicial de bienvenida
+      });
+
+      // Generar token JWT
+      const token = jwt.sign(
+        { 
+          id: nuevoUsuario.id, 
+          username: nuevoUsuario.username 
+        },
+        process.env.JWT_SECRET || "zkp_secret_key",
+        { expiresIn: "24h" }
+      );
+
+      res.status(201).json({
+        success: true,
+        message: "Usuario registrado exitosamente",
+        token: token,
+        usuario: nuevoUsuario.toSafeObject(),
+        hash_info: {
+          cedula_hash_length: hashes.cedula_hash.length,
+          fecha_hash_length: hashes.fecha_hash.length,
+          codigo_hash_length: hashes.codigo_hash.length
+        }
+      });
+
+      console.log(`✅ Registro exitoso: ${username}`);
+    } catch (error) {
+      console.error("❌ Error en registro:", error.message);
+      res.status(500).json({
+        error: "Error interno del servidor",
+        message: "Error al registrar usuario"
+      });
+    }
+  }
+
   // Verificar token JWT
   async verificarToken(req, res) {
     try {
@@ -161,6 +236,113 @@ class AuthController {
         error: "Error cerrando sesión",
       });
     }
+  }
+
+  // Registro de nuevo usuario
+  async register(req, res) {
+    try {
+      const {
+        username,
+        nombre_completo,
+        cedula,
+        fecha_nacimiento,
+        codigo_secreto,
+      } = req.body;
+
+      console.log(`🔧 Registrando nuevo usuario: ${username}`);
+
+      // Validar datos requeridos
+      if (
+        !username ||
+        !nombre_completo ||
+        !cedula ||
+        !fecha_nacimiento ||
+        !codigo_secreto
+      ) {
+        return res.status(400).json({
+          error: "Datos requeridos",
+          required: [
+            "username",
+            "nombre_completo",
+            "cedula",
+            "fecha_nacimiento",
+            "codigo_secreto",
+          ],
+        });
+      }
+
+      // Verificar que el username no exista
+      const usuarioExistente = await Usuario.findByUsername(username);
+      if (usuarioExistente) {
+        return res.status(409).json({
+          error: "El nombre de usuario ya existe",
+          message: "Por favor, elija un nombre de usuario diferente",
+        });
+      }
+
+      // Generar hashes ZKP para almacenamiento
+      const hashes = this.generarHashesZKP(cedula, fecha_nacimiento, codigo_secreto);
+
+      // Crear usuario en base de datos
+      const nuevoUsuario = await Usuario.create({
+        username: username,
+        nombre_completo: nombre_completo,
+        cedula_hash: hashes.cedula_hash,
+        fecha_hash: hashes.fecha_hash,
+        codigo_hash: hashes.codigo_hash,
+        saldo: 1000.0, // Saldo inicial de bienvenida
+      });
+
+      // Generar token JWT
+      const token = jwt.sign(
+        { id: nuevoUsuario.id, username: nuevoUsuario.username },
+        process.env.JWT_SECRET || "zkp_secret_key",
+        { expiresIn: "24h" }
+      );
+
+      res.status(201).json({
+        success: true,
+        message: "Usuario registrado exitosamente",
+        token: token,
+        usuario: nuevoUsuario.toSafeObject(),
+        hash_info: {
+          cedula_hash_length: hashes.cedula_hash.length,
+          fecha_hash_length: hashes.fecha_hash.length,
+          codigo_hash_length: hashes.codigo_hash.length,
+        },
+      });
+
+      console.log(`✅ Registro exitoso: ${username}`);
+    } catch (error) {
+      console.error("❌ Error en registro:", error.message);
+      res.status(500).json({
+        error: "Error interno del servidor",
+        message: "Error al registrar usuario",
+      });
+    }
+  }
+
+  // Generar hashes ZKP para registro
+  generarHashesZKP(cedula, fecha_nacimiento, codigo_secreto) {
+    const crypto = require("crypto");
+
+    // Generar hash de cédula
+    const cedulaHash = crypto.createHash("sha256").update(cedula).digest();
+    const cedula_hash = Array.from(cedulaHash);
+
+    // Generar hash de fecha
+    const fechaHash = crypto.createHash("sha256").update(fecha_nacimiento).digest();
+    const fecha_hash = Array.from(fechaHash);
+
+    // Generar hash de código
+    const codigoHash = crypto.createHash("sha256").update(codigo_secreto).digest();
+    const codigo_hash = Array.from(codigoHash);
+
+    return {
+      cedula_hash,
+      fecha_hash,
+      codigo_hash,
+    };
   }
 }
 

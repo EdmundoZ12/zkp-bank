@@ -1,0 +1,17 @@
+def main(
+    private u32 cedula,
+    private u32 fecha_nacimiento, 
+    private u32 codigo_secreto
+) -> (u32, u32, u32) {
+    // Verificar que los valores no sean 0
+    assert(cedula != 0);
+    assert(fecha_nacimiento != 0);
+    assert(codigo_secreto != 0);
+    
+    // Retornar hashes simples como outputs públicos
+    u32 cedula_hash = cedula + 1000;
+    u32 fecha_hash = fecha_nacimiento + 2000;
+    u32 codigo_hash = codigo_secreto + 3000;
+    
+    return (cedula_hash, fecha_hash, codigo_hash);
+}

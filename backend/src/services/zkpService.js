@@ -345,12 +345,18 @@ class ZKPService {
 
   // Construir comando witness para ZoKrates
   construirComandoWitness(cedula, fecha, codigo, expectedHashes) {
+    // Convertir fecha a formato numérico (YYYYMMDD) si viene como string con guiones
+    let fechaNum = fecha;
+    if (typeof fecha === 'string' && fecha.includes('-')) {
+      fechaNum = fecha.replace(/-/g, '');
+    }
+
     // Convertir hashes esperados a string de argumentos
     const cedulaArgs = expectedHashes.cedula_hash.join(' ');
     const fechaArgs = expectedHashes.fecha_hash.join(' ');
     const codigoArgs = expectedHashes.codigo_hash.join(' ');
 
-    return `compute-witness -a ${cedula} ${fecha} ${codigo} ${cedulaArgs} ${fechaArgs} ${codigoArgs}`;
+    return `compute-witness -a ${cedula} ${fechaNum} ${codigo} ${cedulaArgs} ${fechaArgs} ${codigoArgs}`;
   }
 
   // Leer archivo de prueba generado por ZoKrates

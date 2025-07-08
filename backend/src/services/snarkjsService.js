@@ -34,6 +34,12 @@ class SnarkjsService {
                 throw new Error('Inputs requeridos: cedula, fecha_nacimiento, codigo_secreto');
             }
 
+            // Convertir fecha a formato numérico (YYYYMMDD) si viene como string con guiones
+            let fechaNum = fecha_nacimiento;
+            if (typeof fecha_nacimiento === 'string' && fecha_nacimiento.includes('-')) {
+                fechaNum = fecha_nacimiento.replace(/-/g, '');
+            }
+
             // Verificar archivos del circuito
             if (!fs.existsSync(this.wasmPath)) {
                 throw new Error(`Archivo WASM no encontrado: ${this.wasmPath}`);
@@ -47,16 +53,16 @@ class SnarkjsService {
             // y expected_cedula, expected_fecha, expected_codigo (public)
             const input = {
                 cedula: cedula,
-                fecha_nacimiento: fecha_nacimiento,
+                fecha_nacimiento: fechaNum,
                 codigo_secreto: codigo_secreto,
                 expected_cedula: expectedHashes.cedula || cedula,
-                expected_fecha: expectedHashes.fecha || fecha_nacimiento,
+                expected_fecha: expectedHashes.fecha || fechaNum,
                 expected_codigo: expectedHashes.codigo || codigo_secreto
             };
 
             console.log('📊 Inputs del circuito:', {
                 cedula: cedula,
-                fecha_nacimiento: fecha_nacimiento,
+                fecha_nacimiento: fechaNum,
                 codigo_secreto: codigo_secreto,
                 expected_cedula: input.expected_cedula,
                 expected_fecha: input.expected_fecha,

@@ -3,6 +3,9 @@ const authController = require("../controllers/authController");
 
 const router = express.Router();
 
+// POST /auth/register - Registro de nuevo usuario
+router.post("/register", authController.register);
+
 // POST /auth/login - Login con prueba ZKP
 router.post("/login", authController.loginZKP);
 

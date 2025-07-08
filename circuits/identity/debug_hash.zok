@@ -1,0 +1,13 @@
+from "hashes/sha256/sha256" import main as sha256;
+
+def main(private u32 numero, u32[8] expected_hash) -> u32[8] {
+    // Crear array u32[16] con el número en posición 15
+    u32[16] mut input = [0; 16];
+    input[15] = numero;
+    
+    // Calcular hash SHA256
+    u32[8] computed_hash = sha256([input]);
+    
+    // Retornar el hash calculado para debug
+    return computed_hash;
+}

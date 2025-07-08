@@ -8,9 +8,17 @@ class ZKPController {
       const { username, cedula, fecha_nacimiento, codigo_secreto } = req.body;
 
       console.log(`🔧 Generando prueba ZKP para: ${username}`);
+      console.log('📊 Datos recibidos:', {
+        username,
+        cedula: cedula ? '***mascarado***' : undefined,
+        fecha_nacimiento: fecha_nacimiento ? '***mascarado***' : undefined,
+        codigo_secreto: codigo_secreto ? '***mascarado***' : undefined,
+        body_keys: Object.keys(req.body)
+      });
 
       // Validar datos requeridos
       if (!username || !cedula || !fecha_nacimiento || !codigo_secreto) {
+        console.log('❌ Error: Datos faltantes');
         return res.status(400).json({
           error: "Datos requeridos",
           required: [
@@ -19,6 +27,7 @@ class ZKPController {
             "fecha_nacimiento",
             "codigo_secreto",
           ],
+          received: Object.keys(req.body)
         });
       }
 
