@@ -197,7 +197,7 @@ class AuthController {
       }
 
       // Generar hashes ZKP para almacenamiento
-      const hashes = this.generarHashesZKP(cedula, fecha_nacimiento, codigo_secreto);
+      const hashes = AuthController.generarHashesZKP(cedula, fecha_nacimiento, codigo_secreto);
 
       // Crear usuario en base de datos
       const nuevoUsuario = await Usuario.create({
@@ -487,8 +487,8 @@ class AuthController {
     }
   }
 
-  // Generar hashes ZKP para registro
-  generarHashesZKP(cedula, fecha_nacimiento, codigo_secreto) {
+  // Generar hashes ZKP para registro (static para poder llamarse como AuthController.generarHashesZKP)
+  static generarHashesZKP(cedula, fecha_nacimiento, codigo_secreto) {
     const crypto = require('crypto');
 
     // Generar hash de cédula

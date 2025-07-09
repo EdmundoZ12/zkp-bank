@@ -351,10 +351,10 @@ class ZKPService {
       fechaNum = fecha.replace(/-/g, '');
     }
 
-    // Convertir hashes esperados a string de argumentos
-    const cedulaArgs = expectedHashes.cedula_hash.join(' ');
-    const fechaArgs = expectedHashes.fecha_hash.join(' ');
-    const codigoArgs = expectedHashes.codigo_hash.join(' ');
+    // Solo tomar los primeros 8 elementos de cada hash
+    const cedulaArgs = expectedHashes.cedula_hash.slice(0, 8).join(' ');
+    const fechaArgs = expectedHashes.fecha_hash.slice(0, 8).join(' ');
+    const codigoArgs = expectedHashes.codigo_hash.slice(0, 8).join(' ');
 
     return `compute-witness -a ${cedula} ${fechaNum} ${codigo} ${cedulaArgs} ${fechaArgs} ${codigoArgs}`;
   }

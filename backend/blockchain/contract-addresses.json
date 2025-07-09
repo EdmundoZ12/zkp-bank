@@ -1,0 +1,26 @@
+{
+  "zokrates": {
+    "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "network": "localhost",
+    "deployed_at": "2025-07-08T06:21:36.797Z",
+    "bytecode_verified": true,
+    "bytecode_length": 21462,
+    "inputs_expected": 25,
+    "description": "Contrato verificador para pruebas ZoKrates"
+  },
+  "snarkjs": {
+    "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "network": "localhost",
+    "deployed_at": "2025-07-08T06:21:36.797Z",
+    "bytecode_verified": true,
+    "bytecode_length": "shared",
+    "inputs_expected": 4,
+    "description": "Contrato verificador para pruebas snarkjs"
+  },
+  "deployment_info": {
+    "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "block_number": 2,
+    "network_id": "31337",
+    "deployment_successful": true
+  }
+}

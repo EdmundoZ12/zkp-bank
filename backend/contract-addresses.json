@@ -1,0 +1,14 @@
+{
+  "zokrates": {
+    "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+    "network": "localhost",
+    "deployed_at": "2025-07-08T06:40:28.456Z",
+    "bytecode_verified": true
+  },
+  "snarkjs": {
+    "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+    "network": "localhost",
+    "deployed_at": "2025-07-08T06:40:28.456Z",
+    "bytecode_verified": true
+  }
+}

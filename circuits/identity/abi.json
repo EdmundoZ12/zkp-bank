@@ -44,6 +44,34 @@
     }
   ],
   "output": {
-    "type": "field"
+    "type": "tuple",
+    "components": {
+      "elements": [
+        {
+          "type": "array",
+          "components": {
+            "size": 8,
+            "type": "u32"
+          }
+        },
+        {
+          "type": "array",
+          "components": {
+            "size": 8,
+            "type": "u32"
+          }
+        },
+        {
+          "type": "array",
+          "components": {
+            "size": 8,
+            "type": "u32"
+          }
+        },
+        {
+          "type": "field"
+        }
+      ]
+    }
   }
 }

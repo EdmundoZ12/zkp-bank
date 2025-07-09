@@ -31,7 +31,7 @@ class DualBlockchainService {
             const contractData = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
             this.zokratesAddress = contractData.zokrates.address;
             this.snarkjsAddress = contractData.snarkjs.address;
-            
+
             console.log(`📄 Contrato ZoKrates: ${this.zokratesAddress}`);
             console.log(`📄 Contrato snarkjs: ${this.snarkjsAddress}`);
         } catch (error) {
@@ -107,7 +107,10 @@ class DualBlockchainService {
     // Verificar prueba en blockchain usando el contrato apropiado
     async verificarPruebaEnBlockchain(proof, publicSignals, method = 'zokrates') {
         try {
-            console.log(`🔍 Verificando prueba ${method} en blockchain...`);
+            console.log(`🔍 === DEBUG PROFUNDO ${method.toUpperCase()} ===`);
+            console.log(`📊 PublicSignals recibidos:`, publicSignals.length, 'elementos');
+            console.log(`📋 Primeros 5 signals:`, publicSignals.slice(0, 5));
+            console.log(`📋 Últimos 5 signals:`, publicSignals.slice(-5));
 
             // Verificar disponibilidad del servicio primero
             const disponibilidad = await this.verificarDisponibilidad();
@@ -116,7 +119,7 @@ class DualBlockchainService {
             }
 
             let contract, contractAddress;
-            
+
             if (method === 'zokrates') {
                 contract = this.zokratesContract;
                 contractAddress = this.zokratesAddress;
@@ -140,10 +143,47 @@ class DualBlockchainService {
 
             // Formatear prueba y signals según el método
             let formattedProof, formattedSignals;
-            
+
             if (method === 'zokrates') {
                 formattedProof = this.formatProofForZokrates(proof);
                 formattedSignals = this.formatSignalsForZokrates(publicSignals);
+
+                console.log(`🔧 === ZOKRATES DEBUG DETALLADO ===`);
+                console.log(`📋 Proof original keys:`, Object.keys(proof));
+                console.log(`📋 Proof.proof keys:`, proof.proof ? Object.keys(proof.proof) : 'N/A');
+                console.log(`📊 Formatted proof preview:`, {
+                    a: formattedProof.a.map(x => x.toString().substring(0, 10) + '...'),
+                    b: formattedProof.b.map(arr => arr.map(x => x.toString().substring(0, 10) + '...')),
+                    c: formattedProof.c.map(x => x.toString().substring(0, 10) + '...')
+                });
+                console.log(`📋 Signals originales (${publicSignals.length}):`, publicSignals.map(s => s.toString()));
+                console.log(`📋 Signals formateados (${formattedSignals.length}):`, formattedSignals);
+
+                // VALIDACIÓN ESPECIAL PARA ZOKRATES
+                console.log(`🔍 === VALIDACIÓN ZOKRATES ===`);
+
+                // Verificar que tenemos exactamente 49 signals
+                if (formattedSignals.length !== 49) {
+                    console.log(`❌ ERROR: Se requieren 49 signals, tenemos ${formattedSignals.length}`);
+                    return false;
+                }
+
+                // Verificar que no hay signals undefined o null
+                const invalidSignals = formattedSignals.filter((s, i) => s === undefined || s === null || s === '');
+                if (invalidSignals.length > 0) {
+                    console.log(`❌ ERROR: Signals inválidos encontrados:`, invalidSignals);
+                    return false;
+                }
+
+                // Verificar que todos los signals son números válidos
+                const nonNumericSignals = formattedSignals.filter((s, i) => isNaN(s) || s === '');
+                if (nonNumericSignals.length > 0) {
+                    console.log(`❌ ERROR: Signals no numéricos:`, nonNumericSignals);
+                    return false;
+                }
+
+                console.log(`✅ Todos los signals son válidos`);
+
             } else {
                 formattedProof = this.formatProofForSnarkjs(proof);
                 formattedSignals = this.formatSignalsForSnarkjs(publicSignals);
@@ -158,20 +198,67 @@ class DualBlockchainService {
                 formattedProof.c
             ];
 
+            console.log(`🔧 === ESTRUCTURA FINAL PARA CONTRATO ===`);
+            console.log(`📊 ProofStruct lengths: [${proofStruct[0].length}, ${proofStruct[1].length}, ${proofStruct[2].length}]`);
+            console.log(`📊 FormattedSignals length: ${formattedSignals.length}`);
+            console.log(`📊 Primeros 3 signals: [${formattedSignals.slice(0, 3).join(', ')}]`);
+            console.log(`📊 Últimos 3 signals: [${formattedSignals.slice(-3).join(', ')}]`);
+
             // Verificar en contrato
             console.log('🧪 Estimando gas...');
-            const gasEstimate = await contract.verifyTx.estimateGas(proofStruct, formattedSignals);
-            console.log('⛽ Gas estimado:', gasEstimate.toString());
 
-            const result = await contract.verifyTx.staticCall(proofStruct, formattedSignals, {
-                gasLimit: gasEstimate * 2n
-            });
+            try {
+                const gasEstimate = await contract.verifyTx.estimateGas(proofStruct, formattedSignals);
+                console.log('⛽ Gas estimado:', gasEstimate.toString());
 
-            console.log(`✅ Resultado ${method}:`, result);
-            return result;
+                // LLAMADA DE VERIFICACIÓN CON DEBUG
+                console.log(`🔍 === LLAMANDO AL CONTRATO ===`);
+                const result = await contract.verifyTx.staticCall(proofStruct, formattedSignals, {
+                    gasLimit: gasEstimate * 2n
+                });
+
+                console.log(`📊 Resultado del contrato: ${result}`);
+                console.log(`📊 Tipo de resultado: ${typeof result}`);
+                console.log(`📊 Resultado === true: ${result === true}`);
+                console.log(`📊 Resultado == true: ${result == true}`);
+
+                // ANÁLISIS DEL RESULTADO
+                if (result === true) {
+                    console.log(`✅ ¡VERIFICACIÓN EXITOSA!`);
+                } else if (result === false) {
+                    console.log(`❌ VERIFICACIÓN FALLÓ - El contrato retornó false`);
+                    console.log(`🔍 Posibles causas:`);
+                    console.log(`   1. Prueba inválida (datos incorrectos)`);
+                    console.log(`   2. Signals no coinciden con lo que espera el contrato`);
+                    console.log(`   3. Contrato generado para circuito diferente`);
+                    console.log(`   4. Formato de prueba incorrecto`);
+                } else {
+                    console.log(`⚠️ RESULTADO INESPERADO:`, result);
+                }
+
+                return result;
+
+            } catch (gasError) {
+                console.log(`❌ Error en estimación de gas:`, gasError.message);
+                console.log(`🔧 Intentando con gas manual...`);
+
+                try {
+                    const result = await contract.verifyTx.staticCall(proofStruct, formattedSignals, {
+                        gasLimit: 5000000
+                    });
+                    console.log(`✅ Resultado con gas manual: ${result}`);
+                    return result;
+
+                } catch (manualGasError) {
+                    console.log(`❌ Error con gas manual:`, manualGasError.message);
+                    console.log(`📋 Error completo:`, manualGasError);
+                    throw manualGasError;
+                }
+            }
 
         } catch (error) {
-            console.error(`❌ Error verificando en blockchain ${method}:`, error.message);
+            console.error(`❌ Error en verificación blockchain ${method}:`, error.message);
+            console.error(`📋 Stack trace:`, error.stack);
             return false;
         }
     }
@@ -264,13 +351,26 @@ class DualBlockchainService {
         }
     }
 
-    // Formatear señales para ZoKrates (25 elementos)
+    // Formatear señales para ZoKrates (49 elementos)
     formatSignalsForZokrates(publicSignals) {
+        console.log(`🔧 === FORMATEANDO SIGNALS PARA ZOKRATES (49) ===`);
+        console.log(`📊 Signals recibidos: ${publicSignals.length} elementos`);
+        console.log(`📋 Signals originales:`, publicSignals);
+
         const signals = publicSignals.map(s => s.toString());
-        while (signals.length < 25) {
+        console.log(`📋 Signals como strings:`, signals);
+
+        // ZoKrates ahora necesita exactamente 49 elementos
+        while (signals.length < 49) {
             signals.push("0");
+            console.log(`➕ Agregado '0' (length: ${signals.length})`);
         }
-        return signals.slice(0, 25);
+
+        const finalSignals = signals.slice(0, 49);
+        console.log(`📊 Signals finales (${finalSignals.length}):`, finalSignals.slice(0, 5), '...', finalSignals.slice(-5));
+        console.log(`🔧 === FIN FORMATEO ZOKRATES (49) ===`);
+
+        return finalSignals;
     }
 
     // Formatear señales para snarkjs (4 elementos)
